@@ -17,6 +17,8 @@ import CoordinatorRoster from '@/pages/coordinator/Roster';
 import StudentOverview from '@/pages/student/Overview';
 import StudentContent from '@/pages/student/Content';
 import StudentRoster from '@/pages/student/Roster';
+import StudentRoomsList from '@/pages/student/rooms/List';
+import StudentRoomPage from '@/pages/student/rooms/Room';
 
 import DoubtsPage from '@/pages/doubts/DoubtsPage';
 import ChatPage from '@/pages/chat/ChatPage';
@@ -146,6 +148,22 @@ export default function App() {
             element={
               <RequireRole role="student">
                 <ChatPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/student/rooms"
+            element={
+              <RequireRole role="student">
+                <StudentRoomsList />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/student/rooms/:id"
+            element={
+              <RequireRole role="student">
+                <StudentRoomPage />
               </RequireRole>
             }
           />

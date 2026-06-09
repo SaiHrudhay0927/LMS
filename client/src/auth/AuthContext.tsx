@@ -1,13 +1,13 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { api, getToken, setToken } from '@/lib/api';
 import { disconnectSocket } from '@/lib/socket';
-import { authProvider } from './provider';
+import { GoogleAuthProvider } from './GoogleAuthProvider';
 import type { AuthUser } from './types';
 
 interface AuthState {
   user: AuthUser | null;
   loading: boolean;
-  loginAs(email: string): Promise<void>;
+  loginWithGoogle(idToken: string): Promise<void>;
   logout(): void;
 }
 
@@ -30,8 +30,8 @@ export function AuthProviderRoot({ children }: { children: React.ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const loginAs = useCallback(async (email: string) => {
-    const { token, user } = await authProvider.login({ email });
+  const loginWithGoogle = useCallback(async (idToken: string) => {
+    const { token, user } = await GoogleAuthProvider.loginWithIdToken(idToken);
     disconnectSocket();
     setToken(token);
     setUser(user);
@@ -43,6 +43,9 @@ export function AuthProviderRoot({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, loginAs, logout }), [user, loading, loginAs, logout]);
+  const value = useMemo(
+    () => ({ user, loading, loginWithGoogle, logout }),
+    [user, loading, loginWithGoogle, logout],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

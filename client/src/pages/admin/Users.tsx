@@ -85,7 +85,6 @@ export default function AdminUsers() {
     onSuccess: () => {
       toast.success('User deleted from database');
       qc.invalidateQueries({ queryKey: ['admin'] });
-      qc.invalidateQueries({ queryKey: ['dev-users'] });
     },
     onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Delete failed'),
   });
@@ -248,7 +247,6 @@ function NewUserDialog({ batches }: { batches: BatchOpt[] }) {
       toast.success('User created');
       qc.invalidateQueries({ queryKey: ['admin', 'users'] });
       qc.invalidateQueries({ queryKey: ['admin', 'stats'] });
-      qc.invalidateQueries({ queryKey: ['dev-users'] });
       setOpen(false);
       setEmail('');
       setFullName('');

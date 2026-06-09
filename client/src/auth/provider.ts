@@ -1,5 +1,5 @@
-import { MockAuthProvider } from './MockAuthProvider';
-// import { GoogleAuthProvider } from './GoogleAuthProvider';
+import { GoogleAuthProvider } from './GoogleAuthProvider';
 
-// Swap to GoogleAuthProvider when ready — no other call sites change.
-export const authProvider = MockAuthProvider;
+// Google sign-in is the active provider. The MockAuthProvider stays in the
+// codebase for offline dev work — to switch, change this import.
+export const authProvider = GoogleAuthProvider;

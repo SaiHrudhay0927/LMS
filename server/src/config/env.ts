@@ -17,4 +17,6 @@ export const env = {
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
   ADMIN_EMAIL: (process.env.ADMIN_EMAIL ?? 'saihrudhay9@gmail.com').toLowerCase(),
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
+  OPENAI_MODEL: process.env.OPENAI_MODEL ?? 'gpt-3.5-turbo',
 };

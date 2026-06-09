@@ -11,6 +11,8 @@ import { materialsRouter } from './routes/materials.js';
 import { doubtsRouter } from './routes/doubts.js';
 import { messagesRouter } from './routes/messages.js';
 import { notificationsRouter } from './routes/notifications.js';
+import { aiRouter } from './routes/ai.js';
+import { roomsRouter } from './routes/rooms.js';
 import { errorHandler, notFound } from './middleware/error.js';
 
 export function createApp() {
@@ -36,6 +38,8 @@ export function createApp() {
   app.use('/api/doubts', doubtsRouter);
   app.use('/api/messages', messagesRouter);
   app.use('/api/notifications', notificationsRouter);
+  app.use('/api/ai', aiRouter);
+  app.use('/api/rooms', roomsRouter);
 
   app.use(notFound);
   app.use(errorHandler);

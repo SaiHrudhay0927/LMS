@@ -10,7 +10,9 @@
       "PowerShell(Get-ChildItem *)",
       "PowerShell(npm config *)",
       "PowerShell(\"server modules: $\\(if \\(Test-Path D:\\\\LMS\\\\server\\\\node_modules\\) { \\(Get-ChildItem D:\\\\LMS\\\\server\\\\node_modules\\).Count } else { 'missing' }\\)\"; \"client modules: $\\(if \\(Test-Path D:\\\\LMS\\\\client\\\\node_modules\\) { \\(Get-ChildItem D:\\\\LMS\\\\client\\\\node_modules\\).Count } else { 'missing' }\\)\")",
-      "PowerShell(nslookup *)"
+      "PowerShell(nslookup *)",
+      "Bash(awk -F= '{print $1}' /d/LMS/server/.env)",
+      "Bash(awk -F= '{print $1}' /d/LMS/client/.env)"
     ]
   }
 }

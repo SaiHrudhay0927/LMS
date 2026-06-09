@@ -48,7 +48,6 @@ export default function CoordinatorRoster() {
     onSuccess: () => {
       toast.success('Removed from batch');
       qc.invalidateQueries({ queryKey: ['roster', activeBatchId] });
-      qc.invalidateQueries({ queryKey: ['dev-users'] });
     },
     onError: (e: any) => toast.error(e?.response?.data?.error ?? 'Failed'),
   });
@@ -160,7 +159,6 @@ function AddStudentDialog({ batchId }: { batchId: string }) {
         toast.success('Student enrolled');
       }
       qc.invalidateQueries({ queryKey: ['roster', batchId] });
-      qc.invalidateQueries({ queryKey: ['dev-users'] });
       setOpen(false);
       reset();
     },

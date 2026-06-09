@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useAuth } from '@/auth/useAuth';
+import { AIChatWidget } from '@/components/ai/AIChatWidget';
 
 export function AppShell() {
   const { user } = useAuth();
@@ -15,6 +16,7 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
+      {user.role === 'student' && <AIChatWidget />}
     </div>
   );
 }

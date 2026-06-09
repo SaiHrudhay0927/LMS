@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { User } from '../models/User.js';
 import { signToken } from '../auth/jwt.js';
-import { authProvider } from '../auth/provider.js';
+import { GoogleAuthProvider } from '../auth/GoogleAuthProvider.js';
+import { MockAuthProvider } from '../auth/MockAuthProvider.js';
 import { HttpError } from '../middleware/error.js';
 import { requireAuth, type AuthedRequest } from '../middleware/auth.js';
 import { env } from '../config/env.js';
@@ -20,44 +21,88 @@ function userDTO(u: any) {
   };
 }
 
-// Mock login: trust the email, look it up, issue our JWT.
-authRouter.post('/mock-login', async (req, res, next) => {
+async function loginByEmail(email: string, profile?: { fullName?: string; avatarUrl?: string }) {
+  const normalized = email.toLowerCase();
+  let user = await User.findOne({ email: normalized });
+
+  // Bootstrap: the configured ADMIN_EMAIL can always sign in. If they don't
+  // exist yet, create them as admin on first login. Everyone else must have
+  // been provisioned by the admin already.
+  if (!user && normalized === env.ADMIN_EMAIL) {
+    user = await User.create({
+      email: normalized,
+      fullName: profile?.fullName || 'Admin',
+      avatarUrl: profile?.avatarUrl || '',
+      role: 'admin',
+      isActive: true,
+    });
+    console.log(`[auth] bootstrapped admin account ${normalized}`);
+  }
+
+  if (!user) {
+    throw new HttpError(
+      403,
+      'This Google account has not been added to Pulse LMS. Please ask the admin to provision your access.',
+    );
+  }
+  if (!user.isActive) {
+    throw new HttpError(403, 'This account has been deactivated. Contact the admin.');
+  }
+
+  // Keep profile fresh on each login (name/avatar change happens often).
+  if (profile?.fullName && user.fullName !== profile.fullName && user.role !== 'admin') {
+    user.fullName = profile.fullName;
+  }
+  if (profile?.avatarUrl && user.avatarUrl !== profile.avatarUrl) {
+    user.avatarUrl = profile.avatarUrl;
+  }
+  if (user.isModified()) await user.save();
+
+  const token = signToken({ sub: String(user._id), role: user.role as any });
+  return { token, user: userDTO(user) };
+}
+
+// Real Google sign-in: verify the ID token, then look the email up.
+const googleSchema = z.object({ idToken: z.string().min(10) });
+authRouter.post('/google', async (req, res, next) => {
   try {
-    if (env.AUTH_PROVIDER !== 'mock') {
-      throw new HttpError(403, 'Mock login is disabled in this environment');
+    if (env.AUTH_PROVIDER !== 'google') {
+      throw new HttpError(403, 'Google auth is disabled in this environment');
     }
-    const email = await authProvider.resolveEmail(req.body);
-    const user = await User.findOne({ email, isActive: true });
-    if (!user) throw new HttpError(401, 'No account found for that email');
-    const token = signToken({ sub: String(user._id), role: user.role as any });
-    res.json({ token, user: userDTO(user) });
+    const { idToken } = googleSchema.parse(req.body);
+    const profile = await GoogleAuthProvider.verify(idToken);
+    const result = await loginByEmail(profile.email, {
+      fullName: profile.fullName,
+      avatarUrl: profile.avatarUrl,
+    });
+    res.json(result);
   } catch (err) {
     next(err);
   }
 });
 
-// Stub for real Google later
-authRouter.post('/google', async (_req, _res, next) => {
-  next(new HttpError(501, 'Google auth not enabled yet'));
+// Mock login: only enabled when AUTH_PROVIDER=mock (dev convenience).
+authRouter.post('/mock-login', async (req, res, next) => {
+  try {
+    if (env.AUTH_PROVIDER !== 'mock') {
+      throw new HttpError(403, 'Mock login is disabled. Use POST /api/auth/google instead.');
+    }
+    const email = await MockAuthProvider.resolveEmail(req.body);
+    const result = await loginByEmail(email);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
 });
 
 authRouter.get('/me', requireAuth, (req: AuthedRequest, res) => {
   res.json(userDTO(req.user));
 });
 
-// Dev-only: list seeded users for the demo panel.
-// Safe-ish here because: (a) accounts only exist if seeded, (b) no password
-// is needed in mock mode. Disable in production.
-authRouter.get('/dev-users', async (_req, res, next) => {
-  try {
-    if (env.NODE_ENV === 'production') {
-      throw new HttpError(404, 'Not available');
-    }
-    const users = await User.find({ isActive: true })
-      .sort({ role: 1, fullName: 1 })
-      .select('email fullName role avatarUrl batchId');
-    res.json(users.map(userDTO));
-  } catch (err) {
-    next(err);
-  }
+// Reports which provider is active so the client can render the right UI.
+authRouter.get('/config', (_req, res) => {
+  res.json({
+    provider: env.AUTH_PROVIDER,
+    googleClientId: env.AUTH_PROVIDER === 'google' ? env.GOOGLE_CLIENT_ID : '',
+  });
 });
