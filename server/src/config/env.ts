@@ -13,7 +13,8 @@ export const env = {
   JWT_SECRET: required('JWT_SECRET'),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '7d',
   FRONTEND_URL: process.env.FRONTEND_URL ?? 'http://localhost:5173',
-  AUTH_PROVIDER: (process.env.AUTH_PROVIDER ?? 'mock') as 'mock' | 'google',
+  AUTH_PROVIDER: (process.env.AUTH_PROVIDER ?? 'google') as 'mock' | 'google',
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
+  ADMIN_EMAIL: (process.env.ADMIN_EMAIL ?? 'saihrudhay9@gmail.com').toLowerCase(),
 };
